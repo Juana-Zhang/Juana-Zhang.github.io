@@ -303,7 +303,7 @@ h1 {
   align-self: start;
   box-sizing: border-box;
   min-height: calc(100vh - 12rem);
-  padding-left: clamp(0.75rem, 2vw, 1.25rem);
+  padding-left: clamp(1.5rem, 4vw, 3rem);
 }
 
 .split-sidebar img {
