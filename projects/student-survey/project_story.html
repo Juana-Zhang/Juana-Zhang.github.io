@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Messy Survey Data Cleaning & ML Imputation</title>
+  <style>
+    :root {
+      --ink: #25313f;
+      --muted: #667280;
+      --line: #d9dee5;
+      --panel: #f7f8fa;
+      --panel-strong: #edf1f5;
+      --teal: #167d7f;
+      --coral: #c65d4b;
+      --gold: #9b741b;
+      --green: #3d7d4a;
+      --blue: #486b9a;
+      --white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #fbfbfc;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 36px 28px 48px;
+    }
+
+    .back-home {
+      display: inline-flex;
+      margin-bottom: 22px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 13px;
+      background: var(--white);
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .back-home:hover {
+      background: var(--panel);
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 28px;
+      align-items: stretch;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 28px;
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.02;
+      font-weight: 760;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: 17px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .eyebrow {
+      margin-bottom: 12px;
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 760;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .hero-copy {
+      max-width: 760px;
+      color: #425062;
+      font-size: 18px;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .hero-tag {
+      padding: 8px 11px;
+      color: #314254;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 720;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      min-height: 118px;
+      padding: 18px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--ink);
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .story-band {
+      display: grid;
+      grid-template-columns: 0.78fr 1.22fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .story-panel {
+      padding: 22px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .story-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .story-list li {
+      display: grid;
+      grid-template-columns: 118px 1fr;
+      gap: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+      color: #465365;
+    }
+
+    .story-list li:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .story-list b {
+      color: var(--ink);
+    }
+
+    .impact-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .impact-card {
+      padding: 18px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      min-height: 150px;
+    }
+
+    .impact-card.clean {
+      background: #f2faf8;
+      border-color: #c5e2dc;
+    }
+
+    .impact-card.model {
+      background: #fff5f2;
+      border-color: #efcbc2;
+    }
+
+    .impact-card.private {
+      background: #f5f7fb;
+      border-color: #cbd8ea;
+    }
+
+    .impact-card b {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .impact-card p {
+      font-size: 14px;
+    }
+
+    section {
+      padding: 34px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .method {
+      padding: 22px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .method.cleaning {
+      border-top: 5px solid var(--teal);
+    }
+
+    .method.imputation {
+      border-top: 5px solid var(--coral);
+    }
+
+    .method-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      color: #415061;
+      font-size: 13px;
+      font-weight: 760;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .method-label::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .method ul,
+    .flow ol {
+      margin: 14px 0 0;
+      padding-left: 20px;
+      color: #465365;
+    }
+
+    .method li,
+    .flow li {
+      margin: 8px 0;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .pipeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .step-number {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      place-items: center;
+      color: var(--white);
+      background: var(--ink);
+      border-radius: 50%;
+      font-weight: 760;
+    }
+
+    .pipeline .step:nth-child(1) .step-number {
+      background: var(--blue);
+    }
+
+    .pipeline .step:nth-child(2) .step-number {
+      background: var(--teal);
+    }
+
+    .pipeline .step:nth-child(3) .step-number {
+      background: var(--coral);
+    }
+
+    .pipeline .step:nth-child(4) .step-number {
+      background: var(--green);
+    }
+
+    .step-title {
+      font-weight: 720;
+    }
+
+    .step-detail {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .schema-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .schema-card {
+      min-height: 156px;
+      padding: 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .schema-card b {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .schema-card span {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .schema-card p {
+      font-size: 14px;
+    }
+
+    .bars {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 170px 1fr 56px;
+      gap: 10px;
+      align-items: center;
+      color: #465365;
+      font-size: 14px;
+    }
+
+    .bar-track {
+      height: 14px;
+      background: var(--panel-strong);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+    }
+
+    .bar-fill.profile {
+      width: 12.8%;
+      background: var(--teal);
+    }
+
+    .bar-fill.education {
+      width: 42.6%;
+      background: var(--coral);
+    }
+
+    .bar-fill.personal {
+      width: 42.6%;
+      background: var(--gold);
+    }
+
+    table {
+      width: 100%;
+      margin-top: 18px;
+      border-collapse: collapse;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      color: #3c4856;
+      background: var(--panel-strong);
+      font-weight: 760;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 8px;
+      color: var(--white);
+      background: var(--green);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 720;
+      white-space: nowrap;
+    }
+
+    .callout {
+      padding: 18px;
+      background: #fff8e8;
+      border: 1px solid #ead8a8;
+      border-radius: 8px;
+      color: #594b27;
+    }
+
+    .callout p {
+      color: #594b27;
+      font-size: 15px;
+    }
+
+    code {
+      padding: 2px 5px;
+      background: var(--panel-strong);
+      border-radius: 5px;
+      font-size: 13px;
+    }
+
+    footer {
+      padding-top: 26px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        padding: 28px 18px 38px;
+      }
+
+      header,
+      .story-band,
+      .two-col,
+      .flow,
+      .schema-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-grid,
+      .impact-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .bar-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+    }
+
+    @media (max-width: 540px) {
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .impact-grid {
+        grid-template-columns: 1fr;
+      }
+
+      th,
+      td {
+        padding: 11px 10px;
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="back-home" href="../../index.html">← Back to Nuonan Zhang</a>
+    <header>
+      <div>
+        <div class="eyebrow">Student Survey Analytics</div>
+        <h1>Messy Survey Data Cleaning & ML Imputation</h1>
+        <p class="hero-copy">
+          A messy student survey export became a structured, privacy-aware dataset through two connected workflows: deterministic data cleaning and Random Forest imputation for sparse missing responses.
+        </p>
+        <div class="hero-tags" aria-label="Project methods">
+          <span class="hero-tag">Python ETL</span>
+          <span class="hero-tag">Regex Cleaning</span>
+          <span class="hero-tag">Feature Engineering</span>
+          <span class="hero-tag">Random Forest Imputation</span>
+        </div>
+      </div>
+      <div class="metric-grid" aria-label="Project metrics">
+        <div class="metric">
+          <strong>165</strong>
+          <span>real survey responses, treated as a small sample</span>
+        </div>
+        <div class="metric">
+          <strong>47</strong>
+          <span>raw survey columns</span>
+        </div>
+        <div class="metric">
+          <strong>5</strong>
+          <span>engineered race/ethnicity indicator fields</span>
+        </div>
+        <div class="metric">
+          <strong>17</strong>
+          <span>ML-imputed target fields</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="story-band">
+      <div>
+        <h2>Project Arc</h2>
+        <p>
+          The dataset was small, but the data-quality problem was real: open-ended demographic fields, inconsistent category labels, mixed numeric text, and missing item-level survey answers.
+        </p>
+      </div>
+      <div class="story-panel">
+        <ul class="story-list">
+          <li>
+            <b>Challenge</b>
+            <span>Convert raw student survey responses into a consistent table without exposing row-level personal data.</span>
+          </li>
+          <li>
+            <b>Method</b>
+            <span>Use rule-based cleaning for fields that needed deterministic logic, then use model-based imputation where missingness appeared across survey items.</span>
+          </li>
+          <li>
+            <b>Output</b>
+            <span>Produce a cleaned 52-column analysis table and a documented schema that can be reviewed without the private workbook.</span>
+          </li>
+          <li>
+            <b>Use Case</b>
+            <span>Prepare survey data for downstream student-support analysis while preserving as many valid responses as possible.</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Impact Highlights</h2>
+      <p>
+        The strongest parts of the project are not about dataset size. They are about making messy human-entered data usable, auditable, and ready for modeling.
+      </p>
+      <div class="impact-grid">
+        <article class="impact-card clean">
+          <b>From messy text to reliable fields</b>
+          <p>Gender, race/ethnicity, relationship status, work hours, and caregiving responses were standardized into consistent analytical variables.</p>
+        </article>
+        <article class="impact-card model">
+          <b>Missing values handled with ML</b>
+          <p>Seventeen Likert-scale fields were imputed with item-specific Random Forest models instead of dropping valid student responses.</p>
+        </article>
+        <article class="impact-card private">
+          <b>Public story without private data</b>
+          <p>The repository explains the pipeline and table structure while keeping sensitive row-level survey answers out of the public version.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Two Core Methods</h2>
+      <div class="two-col">
+        <article class="method cleaning">
+          <div class="method-label">Method 01</div>
+          <h3>Data Cleaning Pipeline</h3>
+          <p>
+            Built a deterministic ETL workflow that converted inconsistent free-text and categorical survey responses into repeatable analytical features.
+          </p>
+          <ul>
+            <li>Standardized gender, race/ethnicity, relationship status, work hours, and caregiving fields.</li>
+            <li>Parsed messy work-hour responses such as ranges and text into numeric weekly-hour values.</li>
+            <li>Converted multi-racial responses into one-hot encoded race indicators while preserving a primary cleaned category.</li>
+            <li>Produced a 52-column cleaned table from the original 47-column survey export.</li>
+          </ul>
+        </article>
+
+        <article class="method imputation">
+          <div class="method-label">Method 02</div>
+          <h3>Machine Learning Imputation</h3>
+          <p>
+            Trained one Random Forest classifier per survey item with missing values, using cleaned demographic and caregiving fields as predictors.
+          </p>
+          <ul>
+            <li>Targeted 17 sparse missing Likert-scale fields across education and personal-experience questions.</li>
+            <li>Encoded categorical predictors with label encoding and filled numeric predictor gaps with medians.</li>
+            <li>Predicted missing answers only where enough training labels existed for that item.</li>
+            <li>Preserved the full 165-response analytical sample for later subgroup analysis.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="flow">
+      <div>
+        <h2>Pipeline Flow</h2>
+        <p>
+          The implementation is split into small scripts so the workflow is easy to explain, rerun, and audit.
+        </p>
+      </div>
+      <div class="pipeline">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div>
+            <div class="step-title">Raw survey workbook</div>
+            <div class="step-detail">165 responses, 47 raw fields, mixed demographic and Likert survey columns.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div>
+            <div class="step-title">Cleaning script</div>
+            <div class="step-detail"><code>src/clean_survey_data.py</code> standardizes core profile fields and creates race indicators.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div>
+            <div class="step-title">Random Forest imputation</div>
+            <div class="step-detail"><code>src/impute_missing_survey_responses.py</code> fills item-level missing Likert responses.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <div>
+            <div class="step-title">Analysis-ready table</div>
+            <div class="step-detail">Cleaned and imputed table supports later subgroup analysis without exposing raw data publicly.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Table Structure</h2>
+      <p>
+        The table begins as a Google Forms-style export and becomes a modeling-ready dataset after cleaning. Because the sample is small and privacy-sensitive, the public version documents field-level metadata rather than row-level responses.
+      </p>
+
+      <div class="schema-grid">
+        <div class="schema-card">
+          <b>1</b>
+          <span>timestamp field</span>
+          <p>Survey submission time retained for auditability but not used as a modeling feature.</p>
+        </div>
+        <div class="schema-card">
+          <b>6</b>
+          <span>profile fields</span>
+          <p>Birth year, gender, race/ethnicity, relationship status, work hours, and care work.</p>
+        </div>
+        <div class="schema-card">
+          <b>20</b>
+          <span>education items</span>
+          <p>Likert-scale responses about college access, anxiety, resources, and academic support.</p>
+        </div>
+        <div class="schema-card">
+          <b>20</b>
+          <span>personal-experience items</span>
+          <p>Likert-scale responses about trust, wellbeing, social experience, and daily constraints.</p>
+        </div>
+      </div>
+
+      <div class="bars" aria-label="Raw column distribution">
+        <div class="bar-row">
+          <span>Profile fields</span>
+          <div class="bar-track"><div class="bar-fill profile"></div></div>
+          <span>6 cols</span>
+        </div>
+        <div class="bar-row">
+          <span>Education items</span>
+          <div class="bar-track"><div class="bar-fill education"></div></div>
+          <span>20 cols</span>
+        </div>
+        <div class="bar-row">
+          <span>Personal items</span>
+          <div class="bar-track"><div class="bar-fill personal"></div></div>
+          <span>20 cols</span>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Layer</th>
+            <th>Fields</th>
+            <th>Main Transformation</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Raw survey export</td>
+            <td>47 columns</td>
+            <td>Read workbook and profile missingness by field.</td>
+            <td><span class="pill">source table</span></td>
+          </tr>
+          <tr>
+            <td>Cleaned profile fields</td>
+            <td>Gender, race, relationship, work hours, care work</td>
+            <td>Regex and rule-based standardization for messy text responses.</td>
+            <td>Consistent categorical and numeric fields.</td>
+          </tr>
+          <tr>
+            <td>Race/ethnicity indicators</td>
+            <td>5 added one-hot columns</td>
+            <td>Map multi-racial entries to binary indicators for Hispanic/Latino, White, Black/African American, Asian, and Other/Unspecified.</td>
+            <td>52-column cleaned table.</td>
+          </tr>
+          <tr>
+            <td>ML imputation targets</td>
+            <td>17 Likert fields</td>
+            <td>Train item-specific Random Forest classifiers using cleaned profile predictors.</td>
+            <td>Full small-sample table retained for analysis.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Project Takeaway</h2>
+      <div class="callout">
+        <p>
+          The project shows a practical data-science workflow for small, high-context survey data: clean the fields that require transparent rules, use machine learning only where prediction is appropriate, and document the table structure so the work can be reviewed without revealing private responses.
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      Local page for the survey data cleaning and imputation repository. Source scripts: <code>src/clean_survey_data.py</code> and <code>src/impute_missing_survey_responses.py</code>.
+    </footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Workbench & Skills | Nuonan Zhang</title>
+    <meta name="description" content="AI analytics workbench and skill profile for Nuonan Zhang." />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="Nuonan Zhang home">
+        <span class="brand-icon">N</span>
+        <span>Nuonan Zhang</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a href="work.html">Experience</a>
+        <a href="projects.html">Projects</a>
+        <a class="active" href="ai.html">AI + Skills</a>
+        <a href="about.html">Academic</a>
+        <a href="life.html">Life</a>
+      </nav>
+    </header>
+
+    <main class="page-main">
+      <section class="page-hero">
+        <p class="mini">AI workbench + skills</p>
+        <h1>AI workflows that keep evidence visible.</h1>
+        <p>
+          I am interested in AI as an analytics multiplier: not a black box, but a structured layer that helps people ask
+          better questions, route to trusted workflows, and understand evidence faster.
+        </p>
+      </section>
+
+      <section class="section ai-case">
+        <div class="project-text">
+          <p class="chip">Featured build</p>
+          <h2>AI Data Analyst Workbench</h2>
+          <p>
+            A Streamlit, DuckDB, and Gemini prototype that routes natural-language stakeholder questions to approved SQL
+            workflows and produces report-ready summaries with caveats and next steps.
+          </p>
+          <button class="small-button" type="button" data-reveal="ai">What it demonstrates</button>
+          <ul class="reveal" id="reveal-ai">
+            <li>Governed workflow routing instead of free-form metric invention.</li>
+            <li>Transparent SQL evidence, schema context, and metric definitions.</li>
+            <li>Reusable pattern for recurring stakeholder analytics questions.</li>
+          </ul>
+        </div>
+        <div class="workflow-card" aria-hidden="true">
+          <span>stakeholder question</span>
+          <strong>What changed and why?</strong>
+          <span>routing layer</span>
+          <strong>trusted SQL workflow</strong>
+          <span>analytics output</span>
+          <strong>summary + evidence + next step</strong>
+        </div>
+      </section>
+
+      <section class="skills section" id="skills">
+        <div class="section-title centered">
+          <p class="mini">Skill map</p>
+          <h2>The toolkit I bring into data conversations</h2>
+        </div>
+        <div class="skill-tabs" aria-label="Skill filters">
+          <button class="tab active" type="button" data-filter="all">All</button>
+          <button class="tab" type="button" data-filter="analytics">Analytics</button>
+          <button class="tab" type="button" data-filter="product">Product</button>
+          <button class="tab" type="button" data-filter="ai">AI</button>
+        </div>
+        <div class="skill-garden">
+          <span data-skill="analytics">Advanced SQL</span>
+          <span data-skill="analytics">Python</span>
+          <span data-skill="analytics">Pandas</span>
+          <span data-skill="analytics">R</span>
+          <span data-skill="analytics">Tableau</span>
+          <span data-skill="analytics">Power BI</span>
+          <span data-skill="product">A/B Testing</span>
+          <span data-skill="product">Funnel Analysis</span>
+          <span data-skill="product">Cohort Analysis</span>
+          <span data-skill="product">KPI Design</span>
+          <span data-skill="product">Causal Inference</span>
+          <span data-skill="ai">LLM Workflows</span>
+          <span data-skill="ai">Prompt Guardrails</span>
+          <span data-skill="ai">DuckDB Apps</span>
+          <span data-skill="ai">Insight Automation</span>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <a href="mailto:juanazhang09@gmail.com">juanazhang09@gmail.com</a>
+      <span>Seattle, WA</span>
+      <a href="https://www.linkedin.com/in/juanazhang" target="_blank" rel="noreferrer">LinkedIn</a>
+    </footer>
+
+    <script src="script.js?v=20260702-real-logos"></script>
+  </body>
+</html>
